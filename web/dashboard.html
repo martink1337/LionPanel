@@ -1,0 +1,330 @@
+{{include("header")/}}
+
+
+<div class="text-center mb-4">
+    <h2>{{serverName}} Dashboard</h2>
+</div>
+
+{{if(options.errorMessage)}}
+<div class="row justify-content-md-center">
+    <div class="col-md-6 ">
+        <div class="alert alert-danger border-danger  text-center" role="alert">
+            {{errorMessage|safe}}
+        </div>
+    </div>
+</div>
+{{/if}}
+
+<div class="row justify-content-md-center">
+    <div class="col-lg-8 col-xl-5 dashboard-card">
+
+        <!-- FXServer Control Card -->
+        <div class="card card-accent-danger" style="min-height: 160px;">
+            <div class="card-header font-weight-bold">FXServer Control:</div>
+            <div class="card-body text-center align-middle">
+                <button onclick="controlAction('start')" class="btn btn-outline-{{perms.controlsClass}} btn-lg mx-auto m-2"
+                    type="button" id="ctrl-start" {{perms.controls}}>START</button> &nbsp;
+                <button onclick="controlAction('restart')" class="btn btn-outline-{{perms.controlsClass}} btn-lg mx-auto m-2"
+                    type="button" id="ctrl-restart" {{perms.controls}}>RESTART</button> &nbsp;
+                <button onclick="controlAction('stop')" class="btn btn-outline-{{perms.controlsClass}} btn-lg mx-auto m-2"
+                    type="button" id="ctrl-stop" {{perms.controls}}>STOP</button>
+            </div>
+        </div>
+
+        <!-- Commands Card -->
+        <div class="card card-accent-danger">
+            <div class="card-header font-weight-bold">Commands:</div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <label for="action" class="col-sm-4 col-form-label">Command</label>
+                    <div class="col-sm-8">
+                        <select name="action" id="frm_action" class="form-control" required>
+                            <option value="" disabled selected>&gt; SELECT</option>
+                            <option value="admin_broadcast" {{perms.commandMessage}}>Broadcast Admin Message</option>
+                            <option value="ensure_res" {{perms.commandResources}}>Start/Restart resource</option>
+                            <!-- <option value="restart_res" {{perms.commandResources}}>Restart resource</option> -->
+                            <!-- <option value="start_res" {{perms.commandResources}}>Start resource</option> -->
+                            <option value="stop_res" {{perms.commandResources}}>Stop resource</option>
+                            <option value="refresh_res" {{perms.commandResources}}>Refresh resources</option>
+                            <option value="reinject_res" {{perms.commandResources}}>Re-Inject LionAdmin resources</option>
+                            <option value="check_txaclient" {{perms.commandResources}}>Check LionAdminClient</option>
+                            <option value="kick_all" {{perms.commandKick}}>Kick all players</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="action" class="col-sm-4 col-form-label">Parameter</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="parameter" id="frm_parameter" class="form-control" placeholder=""
+                            readonly required>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <button type="button" id="frm_button" class="btn btn-outline-dark mx-auto">EXECUTE</button>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.col-->
+
+
+    <div class="col-lg-8 col-xl-5 dashboard-card">
+
+        <!-- Card Chart-->
+        <div class="card text-white bg-primary" style="min-height: 160px;">
+            <div class="card-body pb-0">
+                <div class="text-value">Players</div>
+                <div>last 24h</div>
+            </div>
+            {{if(options.chartData === false)}}
+            <div class="text-center mb-4">
+                <h3 class="text-muted">Not enough data, yet...</h3>
+            </div>
+            {{#else}}
+            <div class="chart-wrapper mt-3 mx-3" style="height:70px;">
+                <div class="chartjs-size-monitor">
+                    <div class="chartjs-size-monitor-expand">
+                        <div class=""></div>
+                    </div>
+                    <div class="chartjs-size-monitor-shrink">
+                        <div class=""></div>
+                    </div>
+                </div>
+                <canvas class="chart chartjs-render-monitor" id="card-chart1" height="70"
+                    style="display: block; width: 355px; height: 70px;" width="355"></canvas>
+                <div id="card-chart1-tooltip" class="chartjs-tooltip top"
+                    style="opacity: 0; left: 194.39px; top: 93.2407px;">
+                    <div class="tooltip-header">
+                        <div class="tooltip-header-item">loading</div>
+                    </div>
+                    <div class="tooltip-body">
+                        <div class="tooltip-body-item">
+                            <span class="tooltip-body-item-color" style="background-color: rgb(0, 165, 224);"></span>
+                            <span class="tooltip-body-item-label">players</span>
+                            <span class="tooltip-body-item-value">loading</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+        </div>
+
+        <!-- Card Info -->
+        <div class="card card-accent-primary" style="height:251px;">
+            <div class="card-header font-weight-bold">Status Info:</div>
+            <div class="card-body" id="status-card">
+                Loading...
+            </div>
+        </div>
+        <!-- / Card Info -->
+
+    </div>
+</div>
+
+
+{{if(options.updateData.currentVersion !== options.updateData.latestVersion)}}
+<div class="row justify-content-md-center">
+    <div class="col-md-6 ">
+        <div class="alert alert-{{updateData.class}} border-{{updateData.class}}  text-center" role="alert">
+            <a href="http://trashlord.web1337.net/" class="alert-link">New update available. You are running outdated version ( {{updateData.currentVersion}}
+                ) </a> <br>
+            {{foreach(options.updateData.changes)}}
+            <strong>v{{@this.version}}:</strong> {{@this.changelog|safe}} <br>
+            {{/foreach}}
+        </div>
+    </div>
+</div>
+{{/if}}
+
+
+{{include("footer")/}}
+
+
+<script>
+    //============================================== Controls (start/restart/stop)
+    function controlAction(action) {
+        if (action !== 'start' && !window.confirm('Are you sure you want to ' + action + ' the server?')) {
+            return;
+        }
+        var notify = $.notify({ message: '<p class="text-center">Executing Command...</p>' }, {});
+        $.ajax({
+            url: actionURL = '/fxserver/controls/' + action,
+            type: "GET",
+            dataType: "json",
+            timeout: 3000,
+            success: function (data) {
+                if (data.logout) {
+                    window.location = '/auth?logout';
+                    return;
+                }
+                notify.update('progress', 0);
+                notify.update('type', data.type);
+                notify.update('message', data.message);
+            },
+            error: function (xmlhttprequest, textstatus, message) {
+                notify.update('progress', 0);
+                notify.update('type', 'danger');
+                notify.update('message', message);
+            }
+        });
+    }
+
+
+    //============================================== Commands
+    //Commands with parameter required
+    let paramRequiredCommands = [
+        'admin_broadcast',
+        'ensure_res',
+        'restart_res',
+        'start_res',
+        'stop_res',
+        'kick_all'
+    ];
+
+    //EXECUTE button handler
+    $('#frm_button').click(function () {
+        let data = {
+            action: $("#frm_action").val(),
+            parameter: $("#frm_parameter").val()
+        }
+        if (data.action === null) {
+            var notify = $.notify({ message: '<p class="text-center font-weight-bold">Please select an action first.</p>' }, { delay: 3000, type: 'danger' });
+            return;
+        }
+        if (paramRequiredCommands.indexOf(data.action) != -1 && !data.parameter.length) {
+            var notify = $.notify({ message: '<p class="text-center font-weight-bold">This action require a parameter.</p>' }, { delay: 3000, type: 'danger' });
+            $("#frm_parameter").addClass('is-invalid');
+            $("#frm_parameter").focus();
+            return;
+        }else{
+            $("#frm_parameter").removeClass('is-invalid');
+        }
+
+        var notify = $.notify({ message: '<p class="text-center">Executing Command...</p>' }, {});
+        $.ajax({
+            type: "POST",
+            url: '/fxserver/commands',
+            timeout: 2000,
+            data: data,
+            success: function (data) {
+                notify.update('progress', 0);
+                notify.update('type', data.type);
+                notify.update('message', data.message);
+            },
+            error: function (xmlhttprequest, textstatus, message) {
+                notify.update('progress', 0);
+                notify.update('type', 'danger');
+                notify.update('message', message);
+            }
+        });
+    });
+
+    //Ensure the parameter input is only enabled when neccessary.
+    $('#frm_action').change(function () {
+        $("#frm_parameter").removeClass('is-invalid');
+        $("#frm_parameter").val('');
+        var action = $("#frm_action").val();
+        if (paramRequiredCommands.indexOf(action) != -1) {
+            $("#frm_parameter").prop('readonly', false);
+        } else {
+            $("#frm_parameter").prop('readonly', true);
+        }
+    });
+
+    $("#frm_parameter").on('keyup', function (e) {
+        if (e.keyCode == 13) {
+            $('#frm_button').click();
+        }
+    });
+</script>
+
+
+
+{{if(options.chartData)}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script src="js/custom-tooltips.min.js"></script>
+<script>
+    // Disable the on-canvas tooltip
+    Chart.defaults.global.pointHitDetectionRadius = 1;
+    Chart.defaults.global.tooltips.enabled = false;
+    Chart.defaults.global.tooltips.mode = 'index';
+    Chart.defaults.global.tooltips.position = 'nearest';
+    Chart.defaults.global.tooltips.intersect = false;
+    Chart.defaults.global.tooltips.custom = CustomTooltips;
+
+    var cardChart1 = new Chart($('#card-chart1'), {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'players',
+                backgroundColor: getStyle('--primary'),
+                borderColor: 'rgba(255,255,255,0.55)',
+                fill: false,
+                //NOTE: breaking multiple lines because squirrelly is not respecting LF as line endings.
+                //Change squirrelly tag: {{tags(--,--)/}}
+                //intentionally 'blank' line
+                data: --chartData|safe--
+                //Changing it back: --tags({{,}})/--
+                //intentionally 'blank' line
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            legend: {
+                display: false
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    distribution: 'series',
+                    ticks: {
+                        source: 'data',
+                        autoSkip: true
+                    }
+                }]
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    distribution: 'series',
+                    display: true,
+                    gridLines: {
+                        color: 'transparent',
+                        zeroLineColor: 'transparent'
+                    },
+                    ticks: {
+                        fontSize: 2,
+                        fontColor: 'transparent'
+                    }
+                }],
+                yAxes: [{
+                    // display: false,
+                    ticks: {
+                        display: false,
+                        // suggestedMin: 0,
+                        // suggestedMax: 32
+                    },
+                    gridLines: {
+                        // color: '#83d0ec',
+                        // zeroLineColor: '#83d0ec',
+                        color: 'transparent',
+                        zeroLineColor: 'transparent'
+                    },
+                }]
+            },
+            elements: {
+                line: {
+                    borderWidth: 2
+                },
+                point: {
+                    radius: 0,
+                    hitRadius: 4,
+                    hoverRadius: 4
+                }
+            }
+        }
+    });
+</script>
+{{/if}}

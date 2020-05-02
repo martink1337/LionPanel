@@ -1,0 +1,226 @@
+{{include("header")/}}
+
+<div class="text-center mb-4">
+    <h2>Resources List</h2>
+</div>
+
+
+<div class="row justify-content-md-center">
+    <div class="col-md-7">
+        <div class="card card-accent-primary">
+            <div class="card-header float-left">
+                <span style="font-size: large">All Resources</span>
+                <button class="btn btn-sm btn-primary float-right" type="button" id="btnRefresh" {{disableActions}}>
+                    <i class="icon-refresh"></i> Reload & Refresh
+                </button>
+                <input class="form-control" type="text" name="resource" id="resourceInput" onkeyup="findResource()"
+                    placeholder="Find resource by name..." style="margin-top: 1em;">
+                <div class="row justify-content-md-center">
+                    <span class="form-text text-muted" style="margin-top: calc(0.3rem + 2px)">
+                        Default resources:
+                    </span>
+                    &nbsp;&nbsp;
+                    <label class="switch switch-label switch-pill switch-success fix-pill-form">
+                        <input type="checkbox" id="defResCheckbox" class="switch-input">
+                        <span class="switch-slider" data-checked="On" data-unchecked="Off"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row justify-content-md-center">
+    {{foreach(options.resGroups)}}
+    <div class="col-xs-12 col-sm-12 col-md-7 col-lg-7">
+        <div class="card card-accent-primary" id="resList-card-{{@this.divName}}">
+            <div class="card-header" data-toggle="collapse" href="#resList-cardBody-{{@this.divName}}"
+                aria-expanded="true" aria-controls="resList-cardBody-{{@this.divName}}"
+                id="resList-cardHeader-{{@this.divName}}">
+                <span style="font-size: large">{{@this.subPath}}</span>
+                <i class="icons icon-arrow-down float-right"></i>
+            </div>
+            <div class="card-body collapse show" id="resList-cardBody-{{@this.divName}}"
+                aria-labelledby="resList-cardHeader-{{@this.divName}}">
+                {{each(@this.resources)}}
+                <div class="callout callout-{{@this.statusClass}} b-t-1 b-r-1 b-b-1" id="res-{{@this.name}}"
+                    style="padding-top: 1em;">
+                    <strong class="h4" style="word-wrap: break-word;">{{@this.name}}</strong>
+                    {{if(@this.status=='started')}}
+                    <!-- FIXME: Quick wordaround for the padding problem: -->
+                    <span class="d-sm-none"><br></span>
+                    <button class="btn btn-sm btn-outline-dark float-right"
+                        onclick="btnCommand('ensure_res', '{{@this.name}}')" {{disableActions}}>
+                        RESTART
+                    </button>
+                    &nbsp;
+                    <button class="btn btn-sm btn-outline-dark float-right" style="margin-right: 0.5em;"
+                        onclick="btnCommand('stop_res', '{{@this.name}}')" {{disableActions}}>
+                        STOP
+                    </button>
+                    {{#else}}
+                    <button class="btn btn-sm btn-outline-dark float-right"
+                        onclick="btnCommand('ensure_res', '{{@this.name}}')" {{disableActions}}>
+                        START
+                    </button>
+                    {{/if}}
+                    {{if(@this.version=='')}}
+                    <br>
+                    <br>
+                    {{#else}}
+                    <br>
+                    <small class="text-muted">{{@this.version}} {{@this.author}}</small>
+                    {{/if}}
+                </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+    {{/foreach}}
+</div>
+
+
+{{include("footer")/}}
+
+
+
+
+<script>
+    //NOTE: breaking multiple lines because squirrelly is not respecting LF as line endings.
+    //Change squirrelly tag: {{tags(--,--)/}}
+    //intentionally 'blank' line
+    const resGroupsJS = --resGroupsJS | safe--
+    //Changing it back: --tags({{,}})/--
+    //intentionally 'blank' line
+    const defaultResources = [
+        "webadmin",
+        "race-test",
+        "race",
+        "channelfeed",
+        "irc",
+        "obituary-deaths",
+        "obituary",
+        "playernames",
+        "mapmanager",
+        "baseevents",
+        "chat",
+        "hardcap",
+        "rconlog",
+        "scoreboard",
+        "sessionmanager",
+        "spawnmanager",
+        "fivem-map-hipster",
+        "fivem-map-skater",
+        "fivem",
+        "fivem-awesome1501",
+        "webpack",
+        "yarn",
+        "betaguns",
+        "gameInit",
+        "keks"
+    ]
+
+
+    //============================================== Refresh List
+    $('#btnRefresh').click(function () {
+        var notify = $.notify({ message: '<p class="text-center">Executing Command...</p>' }, {});
+        $.ajax({
+            type: "POST",
+            url: '/fxserver/commands',
+            timeout: 2000,
+            data: { action: 'refresh_res', parameter: '' },
+            success: function (data) {
+                window.location.reload(true);
+                // notify.update('progress', 0);
+                // notify.update('type', data.type);
+                // notify.update('message', data.message);
+            },
+            error: function (xmlhttprequest, textstatus, message) {
+                notify.update('progress', 0);
+                notify.update('type', 'danger');
+                notify.update('message', message);
+            }
+        });
+    })
+
+
+    //============================================== Refresh button
+    function btnCommand(action, parameter) {
+        var notify = $.notify({ message: '<p class="text-center">Executing Command...</p>' }, {});
+        $.ajax({
+            type: "POST",
+            url: '/fxserver/commands',
+            timeout: 2000,
+            data: { action, parameter },
+            success: function (data) {
+                window.location.reload(true);
+            },
+            error: function (xmlhttprequest, textstatus, message) {
+                notify.update('progress', 0);
+                notify.update('type', 'danger');
+                notify.update('message', message);
+            }
+        });
+    }
+
+    //============================================== Search function
+    function findResource() {
+        var input, filter;
+        input = document.getElementById("resourceInput");
+        filter = input.value.toUpperCase();
+
+        resGroupsJS.forEach(folder => {
+            let hidden = 0;
+            folder.resources.forEach(res => {
+                if (res.name.toUpperCase().indexOf(filter) > -1) {
+                    $(`#res-${res.name}`).show();
+                } else {
+                    hidden++;
+                    $(`#res-${res.name}`).hide();
+                }
+            });
+            if (folder.resources.length == hidden) {
+                $(`#resList-card-${folder.divName}`).hide();
+            } else {
+                $(`#resList-card-${folder.divName}`).show();
+            }
+        });
+    }
+
+    //============================================== Hide defaults
+    $('#defResCheckbox').click(function () {
+        hideDefaultResources();
+    });
+
+    function hideDefaultResources() {
+        if ($('#defResCheckbox').is(':checked')) {
+            defaultResources.forEach(defRes => {
+                $(`#res-${defRes}`).show();
+                $(`#res-${defRes}`).removeClass("defaultRes");
+            })
+        } else {
+            defaultResources.forEach(defRes => {
+                $(`#res-${defRes}`).hide();
+                $(`#res-${defRes}`).addClass("defaultRes");
+            })
+        }
+
+        resGroupsJS.forEach(folder => {
+            let hidden = 0;
+            folder.resources.forEach(res => {
+                if ($(`#res-${res.name}`).hasClass("defaultRes")) {
+                    hidden++;
+                }
+            });
+
+            if (folder.resources.length == hidden) {
+                $(`#resList-card-${folder.divName}`).hide();
+            } else {
+                $(`#resList-card-${folder.divName}`).show();
+            }
+        });
+    }
+
+    $(function () {
+        hideDefaultResources();
+    });
+</script>

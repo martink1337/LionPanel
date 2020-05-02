@@ -1,0 +1,10 @@
+{
+    "version": "1.15.1",
+    "changelog": "Fixed console colors. Added custom command logging. Added explosion types to the server log. Added more information to the diagnostics page. Improved verbosity. Added Finnish, Turkish and Latvian languages.",
+    "allVersions": [
+        {
+            "version": "1.15.0",
+            "changelog": "Fixed console colors. Added custom command logging. Added explosion types to the server log. Added more information to the diagnostics page. Improved verbosity. Added Finnish, Turkish and Latvian languages."
+        }
+    ]
+}

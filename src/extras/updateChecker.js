@@ -6,14 +6,14 @@ const context = 'WebServer:updateChecker';
 
 module.exports = async () => {
     try {
-        let rVer = await axios.get('https://raw.githubusercontent.com/martink1337/test/master/version.json');
+        let rVer = await axios.get('https://raw.githubusercontent.com/martink1337/LionPanel/master/version.json');
         rVer = rVer.data;
         if(typeof rVer.version !== 'string' || typeof rVer.changelog !== 'string') throw new Error('Invalid remote version.json file');
         globals.version.latest = rVer.version;
         globals.version.changelog = rVer.changelog;
         globals.version.allVersions = rVer.allVersions || [{version: rVer.version, changelog: rVer.changelog}];
         if(globals.version.current !== rVer.version){
-            logWarn(`A new version (v${rVer.version}) is available for LionPanel - https://github.com/martink1337/soon`, 'UpdateChecker');
+            logWarn(`A new version (v${rVer.version}) is available for LionPanel - https://github.com/martink1337/LionPanel`, 'UpdateChecker');
         }
     } catch (error) {
         logError(`Error checking for updates. Go to the github repository to see if you need one. Its likely an issue with your internet.`, 'UpdateChecker');

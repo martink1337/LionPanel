@@ -52,7 +52,7 @@ module.exports = class FXRunner {
      * Setup the spawn variables
      */
     setupVariables(){
-        let onesyncFlag = (this.config.onesync)? '+set onesync_enabled 1' : '';
+        let onesyncFlag = (this.config.onesync)? '+set onesync legacy' : '';
         if(globals.config.osType === 'Linux'){
             this.spawnVariables = {
                 shell: '/bin/sh',

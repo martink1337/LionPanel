@@ -1,6 +1,6 @@
 <p align="center">
 	<h1 align="center">
-		LionPanel For Fivem
+		LionPanel For FiveM [End Of Support (For Now)]
 	</h1>
 	<h4 align="center">
 		<!-- FiveM Forum thread: &nbsp; <a href="https://forum.fivem.net/t/530475"><img src="https://img.shields.io/badge/dynamic/json.svg?color=green&label=txAdmin&query=views&suffix=%20views&url=https%3A%2F%2Fforum.fivem.net%2Ft%2F530475.json"></img></a>  <br/> -->

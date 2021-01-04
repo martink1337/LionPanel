@@ -108,5 +108,3 @@ npm i
 
 ## License
 - This project is licensed under the [MIT License](https://github.com/martink1337/LionPanel/blob/master/LICENSE).
-
-## Test Line

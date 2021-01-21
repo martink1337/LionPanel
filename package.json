@@ -54,7 +54,7 @@
     "pidusage-tree": "^2.0.5",
     "semver": "^6.3.0",
     "slash": "^3.0.0",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "squirrelly": "^7.4.0",
     "stream-snitch": "0.0.3",
     "xss": "^1.0.6"
